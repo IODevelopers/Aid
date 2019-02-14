@@ -1,5 +1,9 @@
 package in.iodev.aid;
 
+import android.app.ActivityManager;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
@@ -8,12 +12,15 @@ import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
-
+import static android.preference.PreferenceManager.getDefaultSharedPreferences;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.List;
+
 public class Login extends AppCompatActivity {
     EditText username,password;
+    SharedPreferences preferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -21,6 +28,8 @@ public class Login extends AppCompatActivity {
         setContentView(R.layout.activity_login);
         username=findViewById(R.id.username);
         password=findViewById(R.id.password);
+        preferences=getDefaultSharedPreferences(getApplicationContext());
+
     }
 
     public void signin(View view) {
@@ -70,8 +79,8 @@ public class Login extends AppCompatActivity {
         try {
             responseObject = new JSONObject(response);
             if(responseObject.getString("message").equals("Success"))
-            {
-
+            {preferences.edit().putString("user",responseObject.getString("type")).apply();
+            startActivity(new Intent(Login.this,Home.class));
             }
             else
                 Toast.makeText(getApplication(),"wrong credentials",Toast.LENGTH_SHORT).show();
