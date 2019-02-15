@@ -29,6 +29,10 @@ public class Login extends AppCompatActivity {
         username=findViewById(R.id.username);
         password=findViewById(R.id.password);
         preferences=getDefaultSharedPreferences(getApplicationContext());
+        if(preferences.contains("user"))
+        {
+            startActivity(new Intent(Login.this,Home.class));
+        }
 
     }
 
