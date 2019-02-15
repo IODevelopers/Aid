@@ -1,5 +1,6 @@
 package in.iodev.aid;
 
+import android.app.Dialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -15,6 +16,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.BaseAdapter;
 import android.widget.CheckBox;
 import android.widget.ImageView;
@@ -57,6 +60,18 @@ public class Home extends AppCompatActivity {
         new HTTPAsyncTask2().execute("https://6ghfrrqsb3.execute-api.ap-south-1.amazonaws.com/Dev/ngo/list",object.toString());
 
     }
+
+    public void getpercent(View view) {
+       dialog dialogBox=new dialog(view.getContext());
+        dialogBox.show();
+        //Adding width and blur
+        Window window=dialogBox.getWindow();
+        WindowManager.LayoutParams lp = dialogBox.getWindow().getAttributes();
+        lp.dimAmount=0.8f;
+        dialogBox.getWindow().setAttributes(lp);
+        window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+    }
+
     class HTTPAsyncTask2 extends AsyncTask<String, Void, String> {
         String response="Network Error";
 
@@ -93,6 +108,7 @@ public class Home extends AppCompatActivity {
                 Log.i("sample", String.valueOf(array.length()));
                 ngolist.setAdapter(adapter);
                 ngolist.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
+                adapter.notifyDataSetChanged();
 
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -142,7 +158,7 @@ public class Home extends AppCompatActivity {
 
         @Override
         public long getItemId(int i) {
-            return 0;
+            return i;
         }
 
         @Override
