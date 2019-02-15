@@ -45,6 +45,7 @@ public class Home extends AppCompatActivity {
     JSONArray array;
     JSONObject object2;
     Recycleadapter adapter;
+    String percent,user;
     SharedPreferences preferences;
     TextView ads,gain,generate,donate;
     private static final int IO_BUFFER_SIZE = 4 * 1024;
@@ -54,31 +55,53 @@ public class Home extends AppCompatActivity {
         setContentView(R.layout.activity_home);
         ngolist=findViewById(R.id.ngolist);
         preferences=getDefaultSharedPreferences(getApplicationContext());
+        user=preferences.getString("user","");
+        if(preferences.contains("firstsignin"))
+        {
+            percent="25";
+            JSONObject items=null;
+            try {
+                items.put("Username",preferences.getString("user",""));
+                items.put("Percentage",String.valueOf(percent));
+                String url="https://6ghfrrqsb3.execute-api.ap-south-1.amazonaws.com/Dev/userdetails/setpercentage";
+
+                new HTTPAsyncTask().execute(url,items.toString());
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+        else
+        {
+            JSONObject object2=new JSONObject();
+            try {
+
+                object2.put("Username",preferences.getString("user",""));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            new HTTPAsyncTask3().execute("https://6ghfrrqsb3.execute-api.ap-south-1.amazonaws.com/Dev/userdetails",object2.toString());
+        }
         adapter=new Recycleadapter();
         JSONObject object=new JSONObject();
-        JSONObject object2=new JSONObject();
+
         ads=findViewById(R.id.adsviewed);
         gain=findViewById(R.id.gained);
         donate=findViewById(R.id.donated);
         generate=findViewById(R.id.generated);
         try {
             object.put("","");
-            object2.put("Username",preferences.getString("user",""));
         } catch (JSONException e) {
             e.printStackTrace();
         }
         new HTTPAsyncTask2().execute("https://6ghfrrqsb3.execute-api.ap-south-1.amazonaws.com/Dev/ngo/list",object.toString());
-        new HTTPAsyncTask3().execute("https://6ghfrrqsb3.execute-api.ap-south-1.amazonaws.com/Dev/userdetails",object2.toString());
+
 
     }
 
     public void getpercent(View view) {
         dialog dialogBox= null;
-        try {
-            dialogBox = new dialog(view.getContext(),object2.getString("Percentage"));
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
+        
+            dialogBox = new dialog(view.getContext(),percent);
         dialogBox.show();
         //Adding width and blur
         Window window=dialogBox.getWindow();
@@ -237,7 +260,9 @@ public class Home extends AppCompatActivity {
             JSONObject responseObject;
             try {
                 responseObject = new JSONObject(response);
+
                  object2=responseObject.getJSONObject("Data");
+                 percent=object2.getString("Percentage");
                 ads.setText(object2.getString("AdsViewed"));
                 gain.setText(object2.getString("MoneyGained"));
                 donate.setText(object2.getString("MoneyDonated"));
@@ -250,4 +275,51 @@ public class Home extends AppCompatActivity {
             }    }
 
 
-    }}
+    }
+    class HTTPAsyncTask extends AsyncTask<String, Void, String> {
+        String response="Network Error";
+
+        @Override
+        protected String doInBackground(String... urls) {
+            // params comes from the execute() call: params[0] is the url.
+
+            try {
+                response= HTTPPostGet.getJsonResponse(urls[0],urls[1]);
+                Log.i("response",response.toString());
+                return response;
+            } catch (Exception e) {
+                e.printStackTrace();
+                return "Error!";
+            }
+            finally {
+
+            }
+
+        }
+        @Override
+        protected void onPreExecute() {
+
+        }
+
+        // onPostExecute displays the results of the AsyncTask.
+        @Override
+        protected void onPostExecute(String result) {
+
+            JSONObject responseObject;
+            try {
+                responseObject = new JSONObject(response);
+                if(responseObject.getString("Username").equals(user))
+                {preferences.edit().putString(user,percent).apply();
+
+
+                }
+
+
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }    }
+
+
+    }
+}

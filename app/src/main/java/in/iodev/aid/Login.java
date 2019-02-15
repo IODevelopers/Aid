@@ -29,10 +29,13 @@ public class Login extends AppCompatActivity {
         username=findViewById(R.id.username);
         password=findViewById(R.id.password);
         preferences=getDefaultSharedPreferences(getApplicationContext());
-        if(preferences.contains("user"))
-        {
+        if(!preferences.contains("user")) {
+            preferences.edit().putBoolean("firstsignin", true).apply();
+        }
+        else {
             startActivity(new Intent(Login.this,Home.class));
         }
+
 
     }
 
