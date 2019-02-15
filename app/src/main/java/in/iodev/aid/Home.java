@@ -2,6 +2,7 @@ package in.iodev.aid;
 
 import android.app.Dialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
@@ -30,6 +31,7 @@ import com.squareup.picasso.Picasso;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import static android.preference.PreferenceManager.getDefaultSharedPreferences;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -41,28 +43,42 @@ import java.net.URL;
 public class Home extends AppCompatActivity {
     RecyclerView ngolist;
     JSONArray array;
+    JSONObject object2;
     Recycleadapter adapter;
+    SharedPreferences preferences;
+    TextView ads,gain,generate,donate;
     private static final int IO_BUFFER_SIZE = 4 * 1024;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
         ngolist=findViewById(R.id.ngolist);
-
-
+        preferences=getDefaultSharedPreferences(getApplicationContext());
         adapter=new Recycleadapter();
         JSONObject object=new JSONObject();
+        JSONObject object2=new JSONObject();
+        ads=findViewById(R.id.adsviewed);
+        gain=findViewById(R.id.gained);
+        donate=findViewById(R.id.donated);
+        generate=findViewById(R.id.generated);
         try {
             object.put("","");
+            object2.put("Username",preferences.getString("user",""));
         } catch (JSONException e) {
             e.printStackTrace();
         }
         new HTTPAsyncTask2().execute("https://6ghfrrqsb3.execute-api.ap-south-1.amazonaws.com/Dev/ngo/list",object.toString());
+        new HTTPAsyncTask3().execute("https://6ghfrrqsb3.execute-api.ap-south-1.amazonaws.com/Dev/userdetails",object2.toString());
 
     }
 
     public void getpercent(View view) {
-       dialog dialogBox=new dialog(view.getContext());
+        dialog dialogBox= null;
+        try {
+            dialogBox = new dialog(view.getContext(),object2.getString("Percentage"));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
         dialogBox.show();
         //Adding width and blur
         Window window=dialogBox.getWindow();
@@ -188,4 +204,50 @@ public class Home extends AppCompatActivity {
                 description=findViewById(R.id.description);
                 check=findViewById(R.id.checkbox);
      }
-        }}}
+        }}
+    class HTTPAsyncTask3 extends AsyncTask<String, Void, String> {
+        String response="Network Error";
+
+        @Override
+        protected String doInBackground(String... urls) {
+            // params comes from the execute() call: params[0] is the url.
+
+            try {
+                response= HTTPPostGet.getJsonResponse(urls[0],urls[1]);
+                Log.i("response",response.toString());
+                return response;
+            } catch (Exception e) {
+                e.printStackTrace();
+                return "Error!";
+            }
+            finally {
+
+            }
+
+        }
+        @Override
+        protected void onPreExecute() {
+
+        }
+
+        // onPostExecute displays the results of the AsyncTask.
+        @Override
+        protected void onPostExecute(String result) {
+
+            JSONObject responseObject;
+            try {
+                responseObject = new JSONObject(response);
+                 object2=responseObject.getJSONObject("Data");
+                ads.setText(object2.getString("AdsViewed"));
+                gain.setText(object2.getString("MoneyGained"));
+                donate.setText(object2.getString("MoneyDonated"));
+                generate.setText(object2.getString("MoneyGenerated"));
+
+
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }    }
+
+
+    }}
